@@ -14,7 +14,7 @@ This project utilizes standardized Agent Skills. All generated stories and code 
 
 - **Next.js:** 
   - Next.js Best Practices (@.agents/skills/next-best-practices/) — focused reference (RSC boundaries, data patterns, route handlers, metadata, bundling, etc.)
-  - Next.js Project-specific Architecture (@.agents/skills/nextjs-config-01) — Next.js project specific rules for any feature work, scaffolding, or reviews.
+  - Next.js Project-specific Architecture (@.agents/skills/nextjs-config-01/) — Next.js project specific rules for any feature work, scaffolding, or reviews.
   - Additional Project-specific Next.js rules are summarized below; defer to these skills and convention for full detail to avoid drift or duplicate rules.
 
 - **Constraint:** Do not use default LLM patterns if they conflict with the "rules" defined in the skills listed above.

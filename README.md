@@ -33,3 +33,4 @@ Create a skill (`nextjs-config-01`) using rules and specifications defined in `@
 npx skills add https://github.com/gabepublic/software-skills --skill nextjs-config-01
 ```
 - Copy the `_bmad-output/examples/nextjs-config-01/architecture/` to the Next.js project `_bmad-output/planning-artifacts/`
+- Copy the `_bmad-output/examples/nextjs-config-01/prd.md` to the Next.js project `_bmad-output/planning-artifacts/` for testing the skills. 
