@@ -28,7 +28,8 @@ Create a skill (`nextjs-config-01`) using rules and specifications defined in `@
 ```
 - Create the `skills/nextjs-config-01/resources` folder; copy `generate-skills-artifacts/nextjs-config-01/architecture.md` and
   `generate-skills-artifacts/nextjs-config-01/convention.md` to the `resources` folder.
-- Install the skill on other project
+- Install the skill on the actual Next.js project
 ```
 npx skills add https://github.com/gabepublic/software-skills --skill nextjs-config-01
 ```
+- Copy the `_bmad-output/examples/nextjs-config-01/architecture/` to the Next.js project `_bmad-output/planning-artifacts/`
