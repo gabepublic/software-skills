@@ -2,48 +2,22 @@
 
 Apply these rules when generating stories, implementing, reviewing or improving code for the project.
 
-## Project Constraints
-
-| Category                 | Technology             | Scope                      |
-| ------------------------ | ---------------------- | -------------------------- |
-| Language                 | TypeScript             | Entire stack               |
-| Framework                | Next.js (App Router)   | Frontend + server          |
-| UI                       | React                  | Component layer            |
-| UI components            | shadcn/ui              | Component-based UI library |
-| Styling                  | Tailwind CSS           | Styling system             |
-| Validation               | Zod                    | Single source of truth     |
-| Form Management          | React Hook Form        | Form state management      |
-| State Management         | React Context + Hook   | Local state mgmt for UI    |
-| Session                  | iron-session           | Authentication state       |
-| Cryptography             | bcrypt.js              | Password hashing           |
-| Database ORM             | Prisma ORM             | Database ORM               |
-| Server state Management  | @tanstack/react-query  | Server state               |
-| Testing                  | Vitest, Playwright     | Unit + E2E                 |
-
-**Prisma / database runtime:** Prisma Client targets the **Node.js** runtime. Use it from **Server Components**, **Server Actions**, and **`route.ts`** handlers that run on **Node** (the default). Do **not** rely on Prisma in **Edge** `proxy` / `middleware` or in routes that set **`runtime = 'edge'`** unless you adopt an explicitly edge-compatible data client. See [runtime selection](@.agents/skills/next-best-practices/runtime-selection.md) in Next.js Best Practices.
-
----
 
 ## Additional Next.js rules (summary)
 
 These reinforce the stack in **Project Constraints**. Use [Next.js Best Practices](@.agents/skills/next-best-practices/) for routing, data fetching, caching, and Server Actions.
 
-- **Server vs client:** Prefer Server Components; use `'use client'` only where hooks, events, or browser APIs require it; prefer **server parent + client child** for mixed routes.
-- **Data and mutations:** Database reads in server code; HTTP with explicit cache/revalidate; mutations via Server Actions with Zod validation (see convention for shared schema location).
-- **Hooks:** Logic-only, composable, under `hooks/` per [convention](./convention.md); do not return JSX, import UI components, or mix unrelated concerns in one hook.
-- **Anti-patterns:** Avoid `'use client'` on large trees, client-fetching for core reads where RSC suffices, and missing `loading.tsx` / `error.tsx` where UX needs them—aligned with the skill’s RSC and UX guidance.
+### Service Provider Architecture
 
-- **Service Provider Architecture**
+- **Goal:** Provider-agnostic domain types and interfaces; swap implementations via factories.
 
-  - **Goal:**
-    - Provider-agnostic service access
-    - Enable easy swapping of services
+- **Example:** **Prisma** as the Database service provider. The Prisma service implementation is in `services/user_crud_prisma.ts`, wired through `providers/user_crud_providers.ts` with `getUserCRUD()` returning the `createPrismaUserCRUD()`.
 
-  - **Stack alignment:** **Prisma** (see **Project Constraints**) is the default way to access the application database. Use a **Prisma-backed** adapter for `UserCRUD` in normal product code—only from **Node** server contexts (see **Prisma / database runtime** above), not from Edge `proxy` / `middleware` unless you use a different data client there. The **factory below is Prisma-only** so it compiles without `@supabase/supabase-js`. For an optional **Supabase client** adapter and a multi-provider factory, see [Appendix: Supabase alternate provider](#appendix-supabase-alternate-provider).
+- For adding additional alternate providers, like Supabase, see the appendix, "Appendix: Supabase alternate provider" 
 
-  - **Example:**
+- **Example Codes:**
 
-    - Domain Model (Provider-Agnostic): `services/user.ts`
+  - Domain Model (Provider-Agnostic): `services/user.ts`
     ```ts
     // `services/user.ts`
     export interface User {
@@ -53,7 +27,7 @@ These reinforce the stack in **Project Constraints**. Use [Next.js Best Practice
     }
     ```
 
-    - Service Interface: `services/user_crud_interface.ts`
+  - Service Interface: `services/user_crud_interface.ts`
     ```ts
     import type { User } from "@/services/user"
 
@@ -63,7 +37,7 @@ These reinforce the stack in **Project Constraints**. Use [Next.js Best Practice
     }
     ```
 
-    - Primary implementation (Prisma): `services/user_crud_prisma.ts` — satisfies `UserCRUD` using the shared Prisma client (e.g. `@/lib/prisma`), consistent with [convention](./convention.md) (prefer functional style over classes).
+  - Prisma implementation: `services/user_crud_prisma.ts` — satisfies `UserCRUD` using the shared Prisma client (e.g. `@/lib/prisma`), consistent with [convention](./convention.md) (prefer functional style over classes).
     ```ts
     import type { UserCRUD } from "@/services/user_crud_interface"
     import type { User } from "@/services/user"
@@ -94,7 +68,7 @@ These reinforce the stack in **Project Constraints**. Use [Next.js Best Practice
     }
     ```
 
-    - Provider factory (Prisma only): `providers/user_crud_providers.ts` — no Supabase import; safe default for a Prisma-only repo.
+  - Prisma Provider factory: `providers/user_crud_providers.ts` — no Supabase import; safe default for a Prisma-only repo.
     ```ts
     import type { UserCRUD } from "@/services/user_crud_interface"
     import { createPrismaUserCRUD } from "@/services/user_crud_prisma"
@@ -104,7 +78,7 @@ These reinforce the stack in **Project Constraints**. Use [Next.js Best Practice
     }
     ```
 
-    - Usage in Server Components or Server Actions
+  - Usage in Server Components or Server Actions
     ```ts
     import { getUserCRUD } from "@/providers/user_crud_providers"
 
@@ -116,61 +90,12 @@ These reinforce the stack in **Project Constraints**. Use [Next.js Best Practice
     }
     ```
 
+### Metadata (SEO)
 
-- **Metadata (SEO)**
-
-  - Prefer concrete **title** (~50–60 characters) and **description** (~150–160 characters) where they are user-facing SERP fields.
-  - Set **Open Graph** (and Twitter when needed) and a **canonical URL** (`alternates.canonical`) when duplicate or parameterized URLs exist.
-  - Use `generateMetadata` (or the static `metadata` export) for all SEO — never hardcode `<title>` or `<meta>` tags in JSX. (See also `metadata.md` in the Next.js skill.)
-
----
-
-## Non-functional Requirements
-
-### Performance (Primary)
-
-- Core Web Vitals (primary thresholds):
-  - LCP < 2.5s
-  - INP < 200ms (good)
-  - CLS < 0.1
-
-- System Targets (Secondary):
-  - Initial page load < 2s (product-level; align with LCP where measured)
-  - **Lab:** Total Blocking Time (TBT) < 200ms (Lighthouse mobile profile); complements field **INP**
-  - Client-side navigation < 500ms
-
-### Security Requirements
-
-- HTTPS enforced in production
-- Secure cookies (`HttpOnly`, `Secure`, `SameSite=Lax`)
-- No sensitive data logged
-
-### Browser Support
-- Modern evergreen browsers only
-- Latest 2 versions of Chrome, Firefox, Safari, Edge
-
-### Accessibility (Global)
-
-- WCAG 2.1 Level A baseline
-- Keyboard navigation
-- Semantic HTML
-- Visible focus indicators
-- Proper form label associations
-
-Accessibility requirements apply globally to all UI unless explicitly stated.
-
-All subsequent references to accessibility across this document inherit from this section and must not redefine or dilute these requirements.
-
-### Privacy & Compliance
-
-- GDPR / CCPA compliant architecture
-- Consent-aware data handling
-- Data deletion and export supported in later phases
-
-### Graceful Degradation
-
-- Fault-tolerant integration boundaries
-- One external dependency failure must not break UX
+- Prefer concrete **title** (~50–60 characters) and **description** (~150–160 characters) where they are user-facing SERP fields.
+- Set **Open Graph** (and Twitter when needed) and a **canonical URL** (`alternates.canonical`) when duplicate or parameterized URLs exist.
+- Use `generateMetadata` (or the static `metadata` export) for all SEO — never hardcode `<title>` or `<meta>` tags in JSX. (See also `metadata.md` in the Next.js skill.)
+- See the Next.js Best Practices, [metadata.md](@.agents/skills/next-best-practices/metadata.md), for additional details.
 
 ---
 
@@ -251,10 +176,9 @@ track('user_signin', { provider: 'google' });
 
 Use this only when the product intentionally uses **`@supabase/supabase-js`** for `UserCRUD` (e.g. bounded subsystem, migration, or external Supabase project). Add the dependency, env vars (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`), and `services/user_crud_supabase.ts`, then extend the factory with a `USER_DB_PROVIDER` switch.
 
-**Typing / wire shape:** PostgREST returns JSON keys that match **database column names** (often **snake_case** per [convention](./convention.md)). Do **not** treat the raw `data` object as `User`—map rows into the domain type. Adjust `UsersRow` keys to match your table; the mapper below assumes columns `id`, `email`, `name` in SQL (add `@map` or rename fields if yours differ).
+- **Typing / wire shape:** PostgREST returns JSON keys that match **database column names** (often **snake_case** per [convention](./convention.md)). Do **not** treat the raw `data` object as `User`—map rows into the domain type. Adjust `UsersRow` keys to match your table; the mapper below assumes columns `id`, `email`, `name` in SQL (add `@map` or rename fields if yours differ).
 
-**Adapter:** `services/user_crud_supabase.ts`
-
+- **Adapter:** `services/user_crud_supabase.ts`
 ```ts
 import type { UserCRUD } from "@/services/user_crud_interface"
 import type { User } from "@/services/user"
@@ -304,8 +228,7 @@ export function createSupabaseUserCRUD(): UserCRUD {
 }
 ```
 
-**Factory with switch** (replace the Prisma-only `getUserCRUD` when you add Supabase):
-
+- **Factory with switch** (replace the Prisma-only `getUserCRUD` when you add Supabase):
 ```ts
 import type { UserCRUD } from "@/services/user_crud_interface"
 import { createPrismaUserCRUD } from "@/services/user_crud_prisma"

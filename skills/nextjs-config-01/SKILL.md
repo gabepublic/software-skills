@@ -18,11 +18,11 @@ user-invocable: false
 
 Apply this skill together with [Next.js Best Practices](@.agents/skills/next-best-practices/SKILL.md) for App Router mechanics (routing, RSC, caching, Server Actions, `next/script`, etc.).
 
-**Authoritative detail** for *this* skill lives in:
+**Additional detail** for *this* skill lives in:
 
 | Document | Contents |
 |----------|----------|
-| [resources/architecture.md](./resources/architecture.md) | Stack, NFRs, service architecture, metadata, monitoring, release, TypeScript, Supabase appendix |
+| [resources/architecture.md](./resources/architecture.md) | Service provider architecture, metadata (SEO) , monitoring & observability, release, and TypeScript |
 | [resources/convention.md](./resources/convention.md) | Naming, folder tree, imports, Zod, formats, anti-patterns, enforcement, testing, docs |
 
 When instructions conflict, follow the **resources** docs; use this file as a compressed checklist.
@@ -63,23 +63,9 @@ When instructions conflict, follow the **resources** docs; use this file as a co
 
 ---
 
-## Service provider architecture
-
-- **Goal:** Provider-agnostic domain types and interfaces; swap implementations via factories.
-
-- **Default:** **Prisma** in `services/user_crud_prisma.ts` (or equivalent), wired through `providers/user_crud_providers.ts` with **`getUserCRUD()`** returning e.g. `createPrismaUserCRUD()`. Use **functions / object literals**, not classes, for application logic.
-
-- **Factory:** Keep the default factory **Prisma-only** (no `@supabase/supabase-js` import) unless the product adds Supabase per the **appendix** in [architecture.md](./resources/architecture.md).
-
-- **Supabase:** Appendix-only: add adapter, env vars, and `USER_DB_PROVIDER` switch when intentionally using Supabase; map PostgREST rows (often **snake_case** columns) into domain types — do not treat raw JSON as the domain `User`.
-
-Full interface and file names: **architecture.md** § Service Provider Architecture.
-
----
-
 ## Folder layout (high level)
 
-Follow **convention.md** for the full tree. Important roots:
+Follow [resources/convention.md](@./resources/convention.md) for the full tree. Important roots:
 
 - `app/` — routes, layouts, pages, loading/error/not-found, `route.ts` APIs
 - `components/` — reusable UI (`ui/`, `forms/`, `layout/`, `ui-mobile/`, …)
@@ -125,16 +111,6 @@ Follow **convention.md** for the full tree. Important roots:
 
 ---
 
-## Metadata (SEO)
-
-- Use `metadata` / `generateMetadata` for titles and descriptions; do **not** hardcode `<title>` or `<meta>` in JSX for SEO.
-
-- Prefer concrete **title** (~50–60 characters) and **description** (~150–160) for SERP-facing fields; set Open Graph (and Twitter when needed) and **`alternates.canonical`** when duplicates or parameterized URLs exist.
-
-- See [metadata.md](@.agents/skills/next-best-practices/metadata.md).
-
----
-
 ## Monitoring and analytics
 
 - **Primary product analytics:** **Vercel Analytics** (`@vercel/analytics`) — `<Analytics />` in root layout; `track()` for custom events.
@@ -142,6 +118,8 @@ Follow **convention.md** for the full tree. Important roots:
 - **Other scripts:** Use `next/script` and loading strategies per [scripts.md](@.agents/skills/next-best-practices/scripts.md); avoid raw `<script>` where the skill prescribes otherwise.
 
 - **Observability baseline:** Frontend RUM/CWV (e.g. Vercel Analytics), server logs for API routes, error boundaries + optional Sentry/LogRocket; Lighthouse CI in GitHub Actions per architecture.
+
+- For additional details and examples, see [resources/architecture.md](@resources/architecture.md) - Monitoring & Observability.
 
 ---
 
