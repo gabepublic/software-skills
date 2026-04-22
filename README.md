@@ -8,6 +8,8 @@ Modular software skills that enhance AI agent capabilities while enforcing struc
 npx skills add https://github.com/anthropics/skills --skill skill-creator
 ```
 
+- **NOTE:** DO NOT checkin `.agent` folder or otherwise the skills cannot be found by `npx skills add`
+
 ## SKILL: Next.js CONFIG-01
 
 ### DEVELOP the Skill
@@ -148,7 +150,34 @@ npx skills add https://github.com/gabepublic/software-skills --skill fastapi-con
 
 ### USING the Skill
 
-- Create a FastAPI project using uv
+- Install uv - https://docs.astral.sh/uv/getting-started/installation/#pypi
+- Check uv
+```
+where uv
+uv --version
+```
+
+- Create a uv project using uv
 ```
 uv init
+uv venv
+.venv\Scripts\activate
+```
+
+- Install FastAPI - https://fastapicloud.com/docs/getting-started/
+```
+uv add "fastapi[standard]"
+```
+
+- Install Skills
+```
+npx skills add https://github.com/fastapi/fastapi --skill fastapi
+```
+
+
+
+
+TEST!!!
+```
+npx skills add https://github.com/gabepublic/software-skills --skill python-design-patterns
 ```
