@@ -100,6 +100,8 @@ npx skills add https://github.com/gabepublic/software-skills --skill nextjs-conf
 
 ### DEVELOP the Skill
 
+- Create a folder, `fastapi-config-01-dev` and install the following Skill dependencies.
+
 - Depends on Python Skills:
   - [Python Project Structure & Module Architecture](https://skills.sh/wshobson/agents/python-project-structure)
   - [Python Code Style & Documentation](https://skills.sh/wshobson/agents/python-code-style)
@@ -129,4 +131,24 @@ npx skills add https://github.com/wshobson/agents --skill python-testing-pattern
 ```
 
 - Depends on FastAPI Skills:
-  - 
+  - [FastAPI](https://skills.sh/fastapi/fastapi/fastapi)
+```
+npx skills add https://github.com/fastapi/fastapi --skill fastapi
+```
+
+- STAGE-1: use AI agent (for example cursor agent or cursor IDE) to review whether there are conflicts between the skills.
+
+- STAGE-2: develop the `skills/fastapi-config-01` skill.
+  - For testing, checkin to github
+
+- STAGE-3: after the `fastapi-config-01` skill is complete, again test it in the `fastapi-config-01-dev` folder by installing the `fastapi-config-01`:
+```
+npx skills add https://github.com/gabepublic/software-skills --skill fastapi-config-01
+```
+
+### USING the Skill
+
+- Create a FastAPI project using uv
+```
+uv init
+```
