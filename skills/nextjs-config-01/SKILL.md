@@ -25,7 +25,7 @@ Apply this skill together with [Next.js Best Practices](@.agents/skills/next-bes
 | [resources/architecture.md](./resources/architecture.md) | Service provider architecture, metadata (SEO) , monitoring & observability, release, and TypeScript |
 | [resources/convention.md](./resources/convention.md) | Naming, folder tree, imports, Zod, formats, anti-patterns, enforcement, testing, docs |
 
-When instructions conflict, follow the **resources** docs; use this file as a compressed checklist.
+When instructions conflict, follow the **guidances** in this skill and the referenced resources; use this file as a compressed checklist.
 
 ---
 

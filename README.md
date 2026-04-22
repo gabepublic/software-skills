@@ -10,6 +10,8 @@ npx skills add https://github.com/anthropics/skills --skill skill-creator
 
 ## SKILL: Next.js CONFIG-01
 
+### DEVELOP the Skill
+
 - Depends on Skill: [vercel-labs: Next.js Best Practices](https://github.com/vercel-labs/next-skills)
 ```
 npx skills add https://github.com/vercel-labs/next-skills --skill next-best-practices
@@ -96,4 +98,35 @@ npx skills add https://github.com/gabepublic/software-skills --skill nextjs-conf
 
 ## SKILL: FastAPI CONFIG-01
 
-- TBD
+### DEVELOP the Skill
+
+- Depends on Python Skills:
+  - [Python Project Structure & Module Architecture](https://skills.sh/wshobson/agents/python-project-structure)
+  - [Python Code Style & Documentation](https://skills.sh/wshobson/agents/python-code-style)
+  - [Python Design Patterns](https://skills.sh/wshobson/agents/python-design-patterns)
+  - [Python Error Handling](https://skills.sh/wshobson/agents/python-error-handling)
+  - [Python Type Safety](https://skills.sh/wshobson/agents/python-type-safety)
+  - [Python Configuration Management](https://skills.sh/wshobson/agents/python-configuration)
+  - [Python Observability](https://skills.sh/wshobson/agents/python-observability)
+  - [Python Resilience Patterns](https://skills.sh/wshobson/agents/python-resilience)
+  - [Python Resource Management](https://skills.sh/wshobson/agents/python-resource-management)
+  - [Async Python Patterns](https://skills.sh/wshobson/agents/async-python-patterns)
+  - [Python Anti-Patterns Checklist](https://skills.sh/wshobson/agents/python-anti-patterns)
+  - [Python Testing Patterns](https://skills.sh/wshobson/agents/python-testing-patterns)
+```
+npx skills add https://github.com/wshobson/agents --skill python-project-structure
+npx skills add https://github.com/wshobson/agents --skill python-code-style
+npx skills add https://github.com/wshobson/agents --skill python-design-patterns
+npx skills add https://github.com/wshobson/agents --skill python-error-handling
+npx skills add https://github.com/wshobson/agents --skill python-type-safety
+npx skills add https://github.com/wshobson/agents --skill python-configuration
+npx skills add https://github.com/wshobson/agents --skill python-observability
+npx skills add https://github.com/wshobson/agents --skill python-resilience
+npx skills add https://github.com/wshobson/agents --skill python-resource-management
+npx skills add https://github.com/wshobson/agents --skill async-python-patterns
+npx skills add https://github.com/wshobson/agents --skill python-anti-patterns
+npx skills add https://github.com/wshobson/agents --skill python-testing-patterns
+```
+
+- Depends on FastAPI Skills:
+  - 
