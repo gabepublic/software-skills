@@ -65,4 +65,12 @@ npx skills add https://github.com/wshobson/agents --skill python-testing-pattern
   
 - `python-project-structure`
   - `fastapi-config-01`: Canonical layout is `api-app/app/...` (application package under `app/`, no `src/` layout shown).
-  
+
+- `python-type-safety` - refined using cursor agent Opus 4.6 model
+- `python-configuration`  - refined using cursor agent Opus 4.6 model
+- `python-observability` - refined using cursor agent Opus 4.6 model
+- `python-resilience` - refined using cursor agent Opus 4.6 model
+- `python-resource-management` - refined using cursor agent Opus 4.6 model
+- `async-python-patterns` - refined using cursor agent Opus 4.6 model
+- `python-anti-patterns` - refined using cursor agent Opus 4.6 model
+- `python-testing-patterns` - refined using cursor agent Opus 4.6 model
