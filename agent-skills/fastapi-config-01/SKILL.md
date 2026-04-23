@@ -1,6 +1,6 @@
 ---
 name: fastapi-config-01
-description: Opinionated FastAPI project conventions (SQLModel, Alembic, pytest, Docker). Use with the [Official FastAPI skill](.agents/skills/fastapi/SKILL.md) when building or refactoring REST APIs in Python. Covers layout, async DB sessions, repositories, services, auth, and tests.
+description: Opinionated FastAPI project conventions (SQLModel, Alembic, pytest, Docker). Use with the [Official FastAPI skill](../fastapi/SKILL.md) when building or refactoring REST APIs in Python. Covers layout, async DB sessions, repositories, services, auth, and tests.
 ---
 
 # FastAPI
@@ -9,11 +9,11 @@ Project specific FastAPI skill to align with the project specifications and conf
 
 Apply this skill in conjunction with:
 
-- The [Official FastAPI skill](.agents/skills/fastapi/SKILL.md). To refresh from upstream: `npx skills add https://github.com/fastapi/fastapi --skill fastapi`, or see [skills.sh/fastapi](https://skills.sh/fastapi/fastapi/fastapi). 
+- The [Official FastAPI skill](../fastapi/SKILL.md). To refresh from upstream: `npx skills add https://github.com/fastapi/fastapi --skill fastapi`, or see [skills.sh/fastapi](https://skills.sh/fastapi/fastapi/fastapi). 
 
-- Other Python skills under `.agents/skills/`.
+- Other Python skills under `../`.
 
-When instructions conflict, prefer **this file** for project stack and layout; prefer [Official FastAPI skill](.agents/skills/fastapi/SKILL.md) for framework-level FastAPI and Pydantic conventions.
+Where **this skill** or [Patterns](references/patterns.md) are silent, follow the [Official FastAPI skill](../fastapi/SKILL.md); **this skill** does not define alternate FastAPI or Pydantic framework rules.
 
 
 ## When to Use This Skill
@@ -37,6 +37,7 @@ When instructions conflict, prefer **this file** for project stack and layout; p
 | Database migration tool | Alembic |
 | Authentication | authlib, python-jose[cryptography] |
 | Encryption | passlib, bcrypt |
+| HTTP Communication | HTTPX |
 | Testing | pytest, pytest-cov |
 
 
@@ -77,6 +78,12 @@ api-app/
 └── uv.lock
 ```
 
+### Nesting under `app/api/` only (versioning)
+
+The extra depth under **`app/api/v1/endpoints/`** is **not** a general “prefer deep trees” rule. It applies **only** to the HTTP API package so you can add **`v2/`**, **`v3/`**, etc. beside `v1/` without reshuffling the rest of the codebase.
+
+Everywhere else in this layout—**`core/`**, **`models/`**, **`schemas/`**, **`services/`**, **`repositories/`**—stay **shallow and flat** (one package per concern, files grouped by name, no gratuitous `impl/` or `internal/` chains). That matches [python-project-structure](../python-project-structure/SKILL.md): prefer flat hierarchies and add depth **only** for a clear reason; here the reason is **API versioning under `api/`**, not deeper nesting for services or models.
+
 ## Non-functional requirements
 
 - **Release**: create the `Dockerfile` that is commonly used for deployment.
@@ -85,3 +92,8 @@ api-app/
 ## Patterns
 
 Use the patterns as the default templates whenever you generate, extend, or refactor application code for this project. See [Patterns](references/patterns.md) for detailed patterns.
+
+
+## Choosing `def` vs `async def`
+
+When implementing FastAPI routes, dependencies, or background work that touches asyncio, thread pools, or blocking I/O, consult the [Choosing `def` vs `async def`](references/def-vs-async-def.md).

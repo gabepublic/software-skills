@@ -1,6 +1,6 @@
 # Patterns
 
-Use the patterns below as the default templates whenever you generate, extend, or refactor application code for this project. Each pattern is a canonical slice of the agreed stack, follow them so stay consistent across the codebase. When a detail is not specified here, follow [Official FastAPI skill](.agents/skills/fastapi/SKILL.md) for framework-level FastAPI and Pydantic conventions.
+Use the patterns below as the default templates whenever you generate, extend, or refactor application code for this project. Each pattern is a canonical slice of the agreed stack, follow them so stay consistent across the codebase. When a detail is not specified here, follow [Official FastAPI skill](../../fastapi/SKILL.md) for framework-level FastAPI and Pydantic conventions.
 
 ## Implementation Patterns
 
@@ -36,31 +36,43 @@ from fastapi import APIRouter
 api_router = APIRouter(prefix="/api/v1", tags=["api"])
 
 # app/core/config.py
+# Attribute naming follows [python-code-style](../../python-code-style/SKILL.md)
+# (snake_case) and [python-configuration](../../python-configuration/SKILL.md)
+# (explicit env aliases). Environment variables stay SCREAMING_SNAKE_CASE via
+# `Field(alias=...)`, so `.env` / container env vars are unchanged.
 from functools import lru_cache
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """Application settings."""
     model_config = SettingsConfigDict(env_file=".env")
-    DATABASE_URL: str
-    SECRET_KEY: str
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-    API_V1_STR: str = "/api/v1"
+    database_url: str = Field(alias="DATABASE_URL")
+    secret_key: str = Field(alias="SECRET_KEY")
+    access_token_expire_minutes: int = Field(default=30, alias="ACCESS_TOKEN_EXPIRE_MINUTES")
+    api_v1_str: str = Field(default="/api/v1", alias="API_V1_STR")
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
 
 # app/core/database.py
+# Note: `create_async_engine` / `async_sessionmaker` come from SQLAlchemy because
+# SQLModel does not provide them, but the *session type* used everywhere else in
+# the app is `sqlmodel.ext.asyncio.session.AsyncSession`. This keeps the codebase
+# aligned with the "prefer SQLModel over SQLAlchemy" rule in
+# [fastapi/references/other-tools.md](../../fastapi/references/other-tools.md)
+# and [python-anti-patterns](../../python-anti-patterns/SKILL.md).
 from collections.abc import AsyncIterator
 from typing import Annotated
 from fastapi import Depends
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 from app.core.config import get_settings
 
 settings = get_settings()
-engine = create_async_engine(settings.DATABASE_URL, echo=True)
+engine = create_async_engine(settings.database_url, echo=True)
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
@@ -103,8 +115,8 @@ async def example(session: SessionDep) -> dict[str, str]:
 # repositories/base_repository.py
 from typing import Generic, TypeVar
 from pydantic import BaseModel
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import SQLModel, select
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 ModelType = TypeVar("ModelType", bound=SQLModel)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
@@ -142,15 +154,18 @@ class BaseRepository(Generic[ModelType, CreateSchemaType, UpdateSchemaType, IdTy
         return db_obj
 
     async def delete(self, db: AsyncSession, id_value: IdType) -> bool:
-        obj = await self.get(db, id)
+        obj = await self.get(db, id_value)
         if obj is None:
             return False
-        await db.delete(obj)
+        db.delete(obj)
+        await db.flush()
         return True
 
 # repositories/user_repository.py
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
+from fastapi import Depends
 from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
 from app.models.user import User
 from app.repositories.base_repository import BaseRepository
 from app.schemas.user import UserCreate, UserUpdate
@@ -164,7 +179,15 @@ class UserRepository(BaseRepository[User, UserCreate, UserUpdate, int]):
         result = await db.execute(select(User).where(User.email == email))
         return result.scalars().first()
 
-user_repository = UserRepository()
+# Repositories are stateless, so one instance is fine. Exposed via a `Depends`
+# factory (rather than a bare module global) to match the constructor-injection
+# guidance in [python-design-patterns](../../python-design-patterns/SKILL.md)
+# Pattern 7: tests can override the dependency without monkey-patching module
+# state.
+def get_user_repository() -> UserRepository:
+    return UserRepository()
+
+UserRepositoryDep = Annotated[UserRepository, Depends(get_user_repository)]
 
 # app/models/user.py
 from sqlmodel import Field, SQLModel
@@ -177,7 +200,21 @@ class User(SQLModel, table=True):
     # ...
 
 # app/schemas/user.py
+# Public DTOs for the HTTP surface. The table model `app.models.user.User` must
+# NEVER be used as a `response_model` directly — that would leak
+# `hashed_password` and other internal columns. See
+# [python-anti-patterns](../../python-anti-patterns/SKILL.md) "Exposed Internal
+# Types" and [python-design-patterns](../../python-design-patterns/SKILL.md)
+# Pattern 8.
+from pydantic import ConfigDict
 from sqlmodel import SQLModel
+
+class User(SQLModel):
+    """Public user representation used in responses."""
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    email: str
+    is_active: bool
 
 class UserCreate(SQLModel):
     email: str
@@ -197,37 +234,68 @@ class UserUpdateDB(SQLModel):
     is_active: bool | None = None
     
 # services/user_service.py
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Annotated
+from fastapi import Depends
+from sqlmodel.ext.asyncio.session import AsyncSession
 from app.core.security import get_password_hash
-from app.repositories.user_repository import user_repository
+from app.models.user import User as UserTable
+from app.repositories.user_repository import UserRepository, UserRepositoryDep
 from app.schemas.user import UserCreate, UserCreateDB, UserUpdate, UserUpdateDB
 
 class UserService:
-    async def create_user(self, db: AsyncSession, user_in: UserCreate):
-        existing = await user_repository.get_by_email(db, user_in.email)
+    """Business logic for users.
+
+    The repository is injected (constructor injection), aligned with
+    [python-design-patterns](../../python-design-patterns/SKILL.md) Pattern 7.
+    """
+    def __init__(self, repository: UserRepository) -> None:
+        self._repo = repository
+
+    async def get_user(self, db: AsyncSession, user_id: int) -> UserTable | None:
+        return await self._repo.get(db, user_id)
+
+    async def create_user(self, db: AsyncSession, user_in: UserCreate) -> UserTable:
+        existing = await self._repo.get_by_email(db, user_in.email)
         if existing:
             raise ValueError("Email already registered")
 
-        to_db = UserCreateDB(email=user_in.email, hashed_password=get_password_hash(user_in.password))
-        return await user_repository.create(db, to_db)
+        to_db = UserCreateDB(
+            email=user_in.email,
+            hashed_password=get_password_hash(user_in.password),
+        )
+        return await self._repo.create(db, to_db)
 
-    async def update_user(self, db: AsyncSession, user_id: int, user_in: UserUpdate):
-        user = await user_repository.get(db, user_id)
+    async def update_user(
+        self, db: AsyncSession, user_id: int, user_in: UserUpdate
+    ) -> UserTable | None:
+        user = await self._repo.get(db, user_id)
         if user is None:
             return None
         data = user_in.model_dump(exclude_unset=True)
         password = data.pop("password", None)
         if password:
             data["hashed_password"] = get_password_hash(password)
-        return await user_repository.update(db, user, UserUpdateDB.model_validate(data))
+        return await self._repo.update(db, user, UserUpdateDB.model_validate(data))
+
+    async def delete_user(self, db: AsyncSession, user_id: int) -> bool:
+        return await self._repo.delete(db, user_id)
+
+def get_user_service(repo: UserRepositoryDep) -> UserService:
+    return UserService(repo)
+
+UserServiceDep = Annotated[UserService, Depends(get_user_service)]
 ```
 
-**Service layer:** Implement services as in **Pattern 2** (repository + `UserService` + separate public vs DB schemas). The endpoint section below shows how to expose `UserServiceDep` on routes. Avoid duplicating a second, conflicting `UserService` definition in the same codebase.
+**Service layer:** Implement services as in **Pattern 2** (repository + `UserService` + separate public vs DB schemas). `UserService` receives its repository through constructor injection, and the FastAPI `Depends` chain `UserRepositoryDep ? UserServiceDep` exposes it to routes (shown in Pattern 3). This matches the dependency-injection guidance in [python-design-patterns](../../python-design-patterns/SKILL.md) Pattern 7. Avoid duplicating a second, conflicting `UserService` definition in the same codebase.
 
 ## Pattern 3: API Endpoints with Dependencies
 
 ```python
 # api/v1/endpoints/users.py
+# `User` imported here is the PUBLIC schema from `app.schemas.user`, not the
+# table model from `app.models.user`. This keeps `hashed_password` and other
+# internal columns out of responses — see [python-anti-patterns](../../python-anti-patterns/SKILL.md)
+# "Exposed Internal Types".
 from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, Path, status
 from app.api.dependencies import get_current_user
@@ -238,35 +306,60 @@ from app.services.user_service import UserServiceDep
 router = APIRouter(prefix="/users", tags=["users"])
 CurrentUserDep = Annotated[User, Depends(get_current_user)]
 
-@router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
+# Handlers annotate the PUBLIC response schema and convert table rows with
+# `User.model_validate(...)`, matching
+# [python-anti-patterns](../../python-anti-patterns/SKILL.md) "Exposed Internal
+# Types" and [python-design-patterns](../../python-design-patterns/SKILL.md)
+# Pattern 8. The explicit return type removes the need for a separate
+# `response_model=` argument — see the [Official FastAPI skill](../../fastapi/SKILL.md)
+# "Return Type or Response Model".
+
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_user(user_in: UserCreate, db: SessionDep, svc: UserServiceDep) -> User:
     try:
-        return await svc.create_user(db, user_in)
+        created = await svc.create_user(db, user_in)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return User.model_validate(created)
 
-@router.get("/me", response_model=User)
+@router.get("/me")
 def read_current_user(current_user: CurrentUserDep) -> User:
     return current_user
 
-@router.get("/{user_id}", response_model=User)
-async def read_user(user_id: Annotated[int, Path(ge=1)], db: SessionDep, current_user: CurrentUserDep, svc: UserServiceDep) -> User:
+@router.get("/{user_id}")
+async def read_user(
+    user_id: Annotated[int, Path(ge=1)],
+    db: SessionDep,
+    current_user: CurrentUserDep,
+    svc: UserServiceDep,
+) -> User:
     user = await svc.get_user(db, user_id)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return user
+    return User.model_validate(user)
 
-@router.patch("/{user_id}", response_model=User)
-async def update_user(user_id: Annotated[int, Path(ge=1)], user_in: UserUpdate, db: SessionDep, current_user: CurrentUserDep, svc: UserServiceDep) -> User:
+@router.patch("/{user_id}")
+async def update_user(
+    user_id: Annotated[int, Path(ge=1)],
+    user_in: UserUpdate,
+    db: SessionDep,
+    current_user: CurrentUserDep,
+    svc: UserServiceDep,
+) -> User:
     if current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
     user = await svc.update_user(db, user_id, user_in)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
-    return user
+    return User.model_validate(user)
 
 @router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_user(user_id: Annotated[int, Path(ge=1)], db: SessionDep, current_user: CurrentUserDep, svc: UserServiceDep) -> None:
+async def delete_user(
+    user_id: Annotated[int, Path(ge=1)],
+    db: SessionDep,
+    current_user: CurrentUserDep,
+    svc: UserServiceDep,
+) -> None:
     if current_user.id != user_id:
         raise HTTPException(status_code=403, detail="Not authorized")
     deleted = await svc.delete_user(db, user_id)
@@ -274,12 +367,13 @@ async def delete_user(user_id: Annotated[int, Path(ge=1)], db: SessionDep, curre
         raise HTTPException(status_code=404, detail="User not found")
 ```
 
+When the same `Depends(...)` should run for **every** route on a router, prefer attaching it on the router: `APIRouter(..., dependencies=[Depends(...)])` (see the Official FastAPI skill) instead of repeating identical parameters on each handler.
+
 ## Pattern 4: Authentication & Authorization
 
 ```python
 # core/security.py
-from datetime import datetime, timedelta
-from typing import Optional
+from datetime import datetime, timedelta, timezone
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from app.core.config import get_settings
@@ -288,15 +382,13 @@ settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """Create JWT access token."""
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    """Create JWT access token (`exp` as Unix time, timezone-aware clock)."""
     to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    now = datetime.now(timezone.utc)
+    delta = expires_delta if expires_delta is not None else timedelta(minutes=15)
+    to_encode["exp"] = int((now + delta).timestamp())
+    encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm=ALGORITHM)
     return encoded_jwt
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -319,17 +411,28 @@ from app.schemas.user import User
 from app.services.user_service import UserServiceDep
 
 settings = get_settings()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.api_v1_str}/auth/login")
 
-async def get_current_user(db: SessionDep, token: Annotated[str, Depends(oauth2_scheme)], svc: UserServiceDep) -> User:
-    """Get current authenticated user."""
+async def get_current_user(
+    db: SessionDep,
+    token: Annotated[str, Depends(oauth2_scheme)],
+    svc: UserServiceDep,
+) -> User:
+    """Resolve the current user from a JWT and return the PUBLIC schema.
+
+    `svc.get_user` returns the table model; converting with
+    `User.model_validate(...)` guarantees that downstream code and responses
+    only see the public fields — no accidental `hashed_password` leak. See
+    [python-anti-patterns](../../python-anti-patterns/SKILL.md) "Exposed
+    Internal Types".
+    """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.secret_key, algorithms=[ALGORITHM])
         user_id = payload.get("sub")
         if user_id is None:
             raise credentials_exception
@@ -338,7 +441,7 @@ async def get_current_user(db: SessionDep, token: Annotated[str, Depends(oauth2_
     user = await svc.get_user(db, int(user_id))
     if user is None:
         raise credentials_exception
-    return user
+    return User.model_validate(user)
 ```
 
 ## Testing Pattern
@@ -347,8 +450,9 @@ async def get_current_user(db: SessionDep, token: Annotated[str, Depends(oauth2_
 # tests/conftest.py
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlmodel import SQLModel
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.main import app
 from app.core.database import get_db

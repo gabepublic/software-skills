@@ -10,6 +10,14 @@ npx skills add https://github.com/anthropics/skills --skill skill-creator
 
 - **NOTE:** DO NOT checkin `.agent` folder or otherwise the skills cannot be found by `npx skills add`
 
+- **NOTE:** use `agent-skills` folder for all the skills because when the standard `skills` folder is present, the `npx skills add` will NOT do a *deep scan*; it will just look for the folder immediately in the `skills` folder as the skill name.
+
+## Cloned or Modified Skills
+
+Some skills from different authors can be in conflict when used together.
+  
+
+
 ## SKILL: Next.js CONFIG-01
 
 ### DEVELOP the Skill
@@ -171,13 +179,32 @@ uv add "fastapi[standard]"
 
 - Install Skills
 ```
-npx skills add https://github.com/fastapi/fastapi --skill fastapi
-```
+npx skills add https://github.com/gabepublic/software-skills --skill fastapi
 
-
-
-
-TEST!!!
-```
+npx skills add https://github.com/gabepublic/software-skills --skill python-project-structure
+npx skills add https://github.com/gabepublic/software-skills --skill python-code-style
 npx skills add https://github.com/gabepublic/software-skills --skill python-design-patterns
+npx skills add https://github.com/gabepublic/software-skills --skill python-error-handling
+npx skills add https://github.com/gabepublic/software-skills --skill python-type-safety
+npx skills add https://github.com/gabepublic/software-skills --skill python-configuration
+npx skills add https://github.com/gabepublic/software-skills --skill python-observability
+npx skills add https://github.com/gabepublic/software-skills --skill python-resilience
+npx skills add https://github.com/gabepublic/software-skills --skill python-resource-management
+npx skills add https://github.com/gabepublic/software-skills --skill async-python-patterns
+npx skills add https://github.com/gabepublic/software-skills --skill python-anti-patterns
+npx skills add https://github.com/gabepublic/software-skills --skill python-testing-patterns
+
+npx skills add https://github.com/gabepublic/software-skills --skill fastapi-config-01
 ```
+
+- Manually create baseline files;  ANY template scafolding???
+
+- Install BMAD; choose the IDE; 
+```
+npx bmad-method install
+```
+
+TODO:########
+- Copy the `_bmad-output/examples/nextjs-config-01/architecture/` to the Next.js project `_bmad-output/planning-artifacts/`
+- [Optional] Copy the `_bmad-output/examples/nextjs-config-01/prd.md` to the Next.js project `_bmad-output/planning-artifacts/` for testing the skills. 
+- Do the BMAD Process (`/bmad-create-prd`, `/bmad-create-epics-and-stories`, `/bmad-sprint-planning`, `/bmad-create-story`, and `/bmad-dev-story`)

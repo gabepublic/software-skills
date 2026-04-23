@@ -34,6 +34,14 @@ Build behavior by combining objects, not extending classes.
 
 Wait until you have three instances before abstracting. Duplication is often better than premature abstraction.
 
+### 5. Early structure vs late abstraction
+
+[python-code-style](../python-code-style/SKILL.md), [python-anti-patterns](../python-anti-patterns/SKILL.md), and [fastapi-config-01](../fastapi-config-01/SKILL.md) all encourage **tooling, validation, and layering from day one**. That does not fight the rule of three — the two operate on different objects:
+
+- **Quality gates and boundaries** (Ruff, ty, Pydantic validation, repository/service split, `__all__`, response schemas) are adopted **immediately**. They are not abstractions over business logic; they are conventions that make future change cheap. The rule of three does **not** apply to them.
+- **Business-logic abstractions** (shared helpers, base classes, extracted pipelines) wait until **three real instances** make the shape obvious. Prefer duplication over a wrong shared primitive, especially in application services where vertical slices tend to diverge.
+- **Libraries** often tolerate less duplication in public APIs; **application services** often keep vertical slices explicit until patterns stabilize.
+
 ## Quick Start
 
 ```python
@@ -169,13 +177,15 @@ Organize code into distinct layers with clear responsibilities.
 Each layer depends only on layers below it:
 
 ```python
-# Repository: Data access
+# Repository: Data access (SQLModel + async session)
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 class UserRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
     async def get_by_id(self, user_id: str) -> User | None:
-        row = await self._db.fetchrow(
-            "SELECT * FROM users WHERE id = $1", user_id
-        )
-        return User(**row) if row else None
+        return await self._session.get(User, user_id)
 
 # Service: Business logic
 class UserService:
@@ -368,25 +378,42 @@ service = UserService(
 **Don't expose internal types:**
 
 ```python
-# BAD: Leaking ORM model to API
-@app.get("/users/{id}")
-def get_user(id: str) -> UserModel:  # SQLAlchemy model
-    return db.query(UserModel).get(id)
+# BAD: Leaking the SQLModel table to the API
+from sqlmodel import SQLModel, Field
 
-# GOOD: Use response schemas
+class User(SQLModel, table=True):  # internal table model
+    id: str = Field(primary_key=True)
+    email: str
+    password_hash: str
+
 @app.get("/users/{id}")
-def get_user(id: str) -> UserResponse:
-    user = db.query(UserModel).get(id)
-    return UserResponse.from_orm(user)
+def get_user(id: str, session: SessionDep) -> User:  # leaks password_hash
+    return session.get(User, id)
+
+# GOOD: Use response schemas (Pydantic v2, `from_attributes` + `model_validate`)
+from pydantic import ConfigDict
+from sqlmodel import SQLModel
+
+class UserPublic(SQLModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    email: str
+
+@app.get("/users/{id}")
+def get_user(id: str, session: SessionDep) -> UserPublic:
+    user = session.get(User, id)
+    return UserPublic.model_validate(user)
 ```
 
 **Don't mix I/O with business logic:**
 
 ```python
 # BAD: SQL embedded in business logic
-def calculate_discount(user_id: str) -> float:
-    user = db.query("SELECT * FROM users WHERE id = ?", user_id)
-    orders = db.query("SELECT * FROM orders WHERE user_id = ?", user_id)
+from sqlmodel import select
+
+async def calculate_discount(user_id: str, session: AsyncSession) -> float:
+    user = await session.get(User, user_id)
+    orders = (await session.exec(select(Order).where(Order.user_id == user_id))).all()
     # Business logic mixed with data access
 
 # GOOD: Repository pattern
