@@ -177,7 +177,7 @@ uv venv
 uv add "fastapi[standard]"
 ```
 
-- Install Skills
+- Install Skills; or run `install_skills.bat`
 ```
 npx skills add https://github.com/gabepublic/software-skills --skill fastapi
 
@@ -197,7 +197,18 @@ npx skills add https://github.com/gabepublic/software-skills --skill python-test
 npx skills add https://github.com/gabepublic/software-skills --skill fastapi-config-01
 ```
 
-- Manually create baseline files;  ANY template scafolding???
+- Install dependencies listed in `fastapi-config-01` skill
+```
+uv add --group dev pytest pytest-cov ruff ty
+
+uv add sqlmodel alembic httpx asyncer
+```
+
+- Manually create baseline files;  ANY template scafolding??? Not yet found.
+- Initial: cursor prompt
+```
+Setup this fastapi project leveraging on the `.agents/skills` and make sure: to create the folder for the api version 1, `api/v1/` according to the @.agents/skills/fastapi-config-01 - Project Structure. Create an endpoint, `/v1/version` that returns `{"version": "1.0"}` 
+```
 
 - Install BMAD; choose the IDE; 
 ```

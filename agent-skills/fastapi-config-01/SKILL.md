@@ -73,6 +73,7 @@ api-app/
 |    │   ├── user_repository.py
 |    │   └── item_repository.py
 |    └── main.py                 # Application entry
+├── tests                        # tests folder
 ├── Dockerfile
 ├── pyproject.toml
 └── uv.lock
@@ -88,6 +89,11 @@ Everywhere else in this layout—**`core/`**, **`models/`**, **`schemas/`**, **`
 
 - **Release**: create the `Dockerfile` that is commonly used for deployment.
 
+## Testing
+
+- **New HTTP behavior**: When you add or change a route, dependency, or response contract, add or update tests under `tests/` so the behavior is locked in. Prefer one focused test module per area (e.g. `tests/test_v1_version.py` for `GET /v1/version`) or group related routes in a single file if they stay small.
+- **How to test**: Follow [python-testing-patterns](../python-testing-patterns/SKILL.md) (pytest, meaningful coverage). For FastAPI apps, the [Testing Pattern](references/patterns.md) shows `httpx.AsyncClient` with `ASGITransport`; synchronous `fastapi.testclient.TestClient` is also fine for simple routes without async fixtures.
+- **CI mindset**: Run `uv run pytest` (and optionally `uv run pytest --cov=app`) before considering the change done.
 
 ## Patterns
 
