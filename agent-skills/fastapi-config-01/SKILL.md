@@ -3,7 +3,7 @@ name: fastapi-config-01
 description: Opinionated FastAPI project conventions (SQLModel, Alembic, pytest, Docker). Use with the [Official FastAPI skill](../fastapi/SKILL.md) when building or refactoring REST APIs in Python. Covers layout, async DB sessions, repositories, services, auth, and tests.
 ---
 
-# FastAPI
+# FastAPI Config-01
 
 Project specific FastAPI skill to align with the project specifications and configurations that are listed below.
 
