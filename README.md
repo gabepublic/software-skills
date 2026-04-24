@@ -156,66 +156,11 @@ npx skills add https://github.com/fastapi/fastapi --skill fastapi
 npx skills add https://github.com/gabepublic/software-skills --skill fastapi-config-01
 ```
 
+### DEVELOP the template
+
+- see `software-skills\build-templates\api-fastapi-skilled-template\README.md`
+
 ### USING the Skill
 
-- Install uv - https://docs.astral.sh/uv/getting-started/installation/#pypi
-- Check uv
-```
-where uv
-uv --version
-```
+- see `https://github.com/gabepublic/api-fastapi-skilled-template\README.md`
 
-- Create a uv project using uv
-```
-uv init
-uv venv
-.venv\Scripts\activate
-```
-
-- Install FastAPI - https://fastapicloud.com/docs/getting-started/
-```
-uv add "fastapi[standard]"
-```
-
-- Install Skills; or run `install_skills.bat`
-```
-npx skills add https://github.com/gabepublic/software-skills --skill fastapi
-
-npx skills add https://github.com/gabepublic/software-skills --skill python-project-structure
-npx skills add https://github.com/gabepublic/software-skills --skill python-code-style
-npx skills add https://github.com/gabepublic/software-skills --skill python-design-patterns
-npx skills add https://github.com/gabepublic/software-skills --skill python-error-handling
-npx skills add https://github.com/gabepublic/software-skills --skill python-type-safety
-npx skills add https://github.com/gabepublic/software-skills --skill python-configuration
-npx skills add https://github.com/gabepublic/software-skills --skill python-observability
-npx skills add https://github.com/gabepublic/software-skills --skill python-resilience
-npx skills add https://github.com/gabepublic/software-skills --skill python-resource-management
-npx skills add https://github.com/gabepublic/software-skills --skill async-python-patterns
-npx skills add https://github.com/gabepublic/software-skills --skill python-anti-patterns
-npx skills add https://github.com/gabepublic/software-skills --skill python-testing-patterns
-
-npx skills add https://github.com/gabepublic/software-skills --skill fastapi-config-01
-```
-
-- Install dependencies listed in `fastapi-config-01` skill
-```
-uv add --group dev pytest pytest-cov ruff ty
-
-uv add sqlmodel alembic httpx asyncer
-```
-
-- Manually create baseline files;  ANY template scafolding??? Not yet found.
-- Initial: cursor prompt
-```
-Setup this fastapi project leveraging on the `.agents/skills` and make sure: to create the folder for the api version 1, `api/v1/` according to the @.agents/skills/fastapi-config-01 - Project Structure. Create an endpoint, `/v1/version` that returns `{"version": "1.0"}` 
-```
-
-- Install BMAD; choose the IDE; 
-```
-npx bmad-method install
-```
-
-TODO:########
-- Copy the `_bmad-output/examples/nextjs-config-01/architecture/` to the Next.js project `_bmad-output/planning-artifacts/`
-- [Optional] Copy the `_bmad-output/examples/nextjs-config-01/prd.md` to the Next.js project `_bmad-output/planning-artifacts/` for testing the skills. 
-- Do the BMAD Process (`/bmad-create-prd`, `/bmad-create-epics-and-stories`, `/bmad-sprint-planning`, `/bmad-create-story`, and `/bmad-dev-story`)
