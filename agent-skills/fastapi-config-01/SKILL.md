@@ -48,6 +48,7 @@ Where **this skill** or [Patterns](references/patterns.md) are silent, follow th
 ```
 api-app/
 ├── app/
+|    ├── adapters/               # Adapters
 |    ├── api/                    # API routes
 |    │   ├── v1/
 |    │   │   ├── endpoints/
@@ -79,11 +80,20 @@ api-app/
 └── uv.lock
 ```
 
-### Nesting under `app/api/` only (versioning)
+## Nesting and Versioning Policy
 
-The extra depth under **`app/api/v1/endpoints/`** is **not** a general “prefer deep trees” rule. It applies **only** to the HTTP API package so you can add **`v2/`**, **`v3/`**, etc. beside `v1/` without reshuffling the rest of the codebase.
+Use extra depth under app/api/v1/endpoints/ as the default versioning mechanism for HTTP contracts, so you can add v2/, v3/, etc. beside v1/ without reshuffling unrelated code.
 
-Everywhere else in this layout—**`core/`**, **`models/`**, **`schemas/`**, **`services/`**, **`repositories/`**—stay **shallow and flat** (one package per concern, files grouped by name, no gratuitous `impl/` or `internal/` chains). That matches [python-project-structure](../python-project-structure/SKILL.md): prefer flat hierarchies and add depth **only** for a clear reason; here the reason is **API versioning under `api/`**, not deeper nesting for services or models.
+Outside app/api/, keep packages shallow and flat by default—especially core/, models/, schemas/, services/, and repositories/ (one package per concern, files grouped by domain, no gratuitous impl//internal/ chains).
+
+A versioned subtree outside api/ is allowed when there is a clear, durable contract difference tied to API versions (for example, materially different request/response shapes, orchestration rules, or adapter behavior). In those cases, use focused versioned namespaces such as schemas/v1, services/v1, or adapters/v1, and keep the rest of the package flat.
+
+Do not introduce version folders preemptively. Add them only when:
+
+differences are substantial (not minor field drift),
+parallel support for multiple API versions is required, and
+the version boundary improves clarity more than it increases navigation cost.
+This follows python-project-structure: prefer flat hierarchies, and add depth only for a clear architectural reason.
 
 ## Non-functional requirements
 
@@ -103,3 +113,33 @@ Use the patterns as the default templates whenever you generate, extend, or refa
 ## Choosing `def` vs `async def`
 
 When implementing FastAPI routes, dependencies, or background work that touches asyncio, thread pools, or blocking I/O, consult the [Choosing `def` vs `async def`](references/def-vs-async-def.md).
+
+## Required Fields in Pydantic Models (Skill Conformance)
+
+To stay aligned with the **Official FastAPI** skill, do not use ellipsis (...) to mark required fields in Pydantic models.
+
+Use plain type annotations for requiredness, and use `Field()` only for constraints/metadata when needed.
+
+Do this:
+```
+from pydantic import BaseModel, Field
+class CreateResponseRequest(BaseModel):
+    model: str
+    reasoning_effort: str = Field(description="Reasoning level, e.g. low/medium/high")
+    instructions: str
+    input: str
+    max_token_limit: int = Field(gt=0, description="Maximum output token budget")
+```
+
+Avoid this:
+```
+from pydantic import BaseModel, Field
+class CreateResponseRequest(BaseModel):
+    model: str = Field(..., description="Target model")
+    reasoning_effort: str = Field(..., description="Reasoning level")
+    instructions: str = Field(..., description="System instructions")
+```
+
+Use `Field(...)` ellipsis only if a framework edge case truly requires it; otherwise treat it as a conformance violation in this project.
+
+Review check: reject or refactor any schema using `Field(...)` ellipsis for required fields.
