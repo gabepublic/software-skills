@@ -1,5 +1,5 @@
 ---
-name: greet-helloworld
+name: greet-helloname
 description: Emit a fixed Hello World greeting when the user's request begins with "Hi".
 allowed-tools:
 ---
