@@ -1,5 +1,5 @@
 ---
-name: greet-helloname
+name: greet-helloname-withdatetime
 description: Emit a name-aware greeting when the user's request begins with "Hi".
 allowed-tools:
 ---
