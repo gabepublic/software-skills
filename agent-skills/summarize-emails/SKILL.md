@@ -6,11 +6,10 @@ description: >
   list recent mail, recap messages, or describe what came in. Not for sending
   mail or changing labels—read and summarize only.
 compatibility: >
-  Python 3 with dependencies from the project (google-api-python-client,
-  google-auth-oauthlib, python-dotenv). Gmail OAuth (credentials / tokens per
-  scripts/read_gmail.py). Network access to Gmail API. Run commands from this
-  skill's root directory (the folder that contains SKILL.md) so .env and paths
-  resolve correctly.
+  Python 3 with dependencies in requirements.txt. Gmail OAuth (credentials /
+  tokens per scripts/read_gmail.py). Network access to Gmail API. Run commands
+  from this skill's root directory (the folder that contains SKILL.md) so .env
+  and paths resolve correctly.
 metadata:
   version: "1.0"
 ---
@@ -22,7 +21,14 @@ Activate for requests like: summarize my email, what’s in my inbox, recap rece
 ## Before you run
 
 1. **Working directory**: Use the directory containing this `SKILL.md` as the current working directory when invoking Python (same folder as `scripts/`).
-2. **Credentials**: If the script exits with errors about missing files or auth, follow the docstring in `scripts/read_gmail.py` (Desktop OAuth client, tokens, optional `.env` beside `SKILL.md`).
+2. **Dependencies**: In a fresh environment, install this skill's bundled Python dependencies before running the script:
+
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
+
+   If the script reports missing Python modules, run the same command from the skill root and retry.
+3. **Credentials**: If the script exits with errors about missing files or auth, follow the docstring in `scripts/read_gmail.py` (Desktop OAuth client, tokens, optional `.env` beside `SKILL.md`).
 
 ## Steps
 

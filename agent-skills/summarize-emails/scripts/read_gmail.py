@@ -24,12 +24,22 @@ from email.header import decode_header
 from pathlib import Path
 from textwrap import indent
 
-from dotenv import load_dotenv
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-from googleapiclient.errors import HttpError
+try:
+    from dotenv import load_dotenv
+    from google.auth.transport.requests import Request
+    from google.oauth2.credentials import Credentials
+    from google_auth_oauthlib.flow import InstalledAppFlow
+    from googleapiclient.discovery import build
+    from googleapiclient.errors import HttpError
+except ModuleNotFoundError as exc:
+    missing = exc.name or "required package"
+    print(
+        f"Missing Python module: {missing}\n"
+        "Install this skill's dependencies from the skill root with:\n"
+        "  python -m pip install -r requirements.txt",
+        file=sys.stderr,
+    )
+    raise SystemExit(1) from exc
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(_PROJECT_ROOT / ".env", override=True)
