@@ -8,8 +8,8 @@ description: >
 compatibility: >
   Python 3 with dependencies in requirements.txt. Gmail OAuth (credentials /
   tokens per scripts/read_gmail.py). Network access to Gmail API. Run commands
-  from this skill's root directory (the folder that contains SKILL.md) so .env
-  and paths resolve correctly.
+  from this skill's root directory (the folder that contains SKILL.md). OAuth
+  tokens are written to the project root, not the skill folder.
 metadata:
   version: "1.0"
 ---
@@ -28,7 +28,7 @@ Activate for requests like: summarize my email, what’s in my inbox, recap rece
    ```
 
    If the script reports missing Python modules, run the same command from the skill root and retry.
-3. **Credentials**: If the script exits with errors about missing files or auth, follow the docstring in `scripts/read_gmail.py` (Desktop OAuth client, tokens, optional `.env` beside `SKILL.md`).
+3. **Credentials and tokens**: Keep `credentials.json` and optional `.env` beside `SKILL.md`. OAuth creates or refreshes `token.json` in the project root folder, not in the skill folder. If `--account EMAIL` or `GMAIL_ACCOUNT` is used, the token is stored under the project root `tokens/` directory. `GMAIL_TOKEN_PATH` overrides this only when the user explicitly wants a custom token path.
 
 ## Steps
 
@@ -68,7 +68,7 @@ Activate for requests like: summarize my email, what’s in my inbox, recap rece
 |-----------|------------|
 | Exit code 1, FileNotFoundError / credentials | Tell the user what is missing; point them to `scripts/read_gmail.py` header comments. |
 | Exit code 2, Gmail API error | Quote or paraphrase the error; suggest token refresh or Google account status. |
-| Token mailbox mismatch (ValueError text in stderr) | Explain that the saved token is for a different address; suggest deleting the token file and re-authorizing. |
+| Token mailbox mismatch (ValueError text in stderr) | Explain that the saved token is for a different address; suggest deleting the token file from the project root (or project root `tokens/`) and re-authorizing. |
 | Empty inbox / no matches | Report no matching messages; offer to retry with `--no-unread-only` if they used unread-only and might have no unread mail. |
 
 Optional flags are documented in the script: `--account EMAIL`, `--debug` (label diagnostics on stderr).

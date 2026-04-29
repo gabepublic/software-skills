@@ -5,8 +5,9 @@ Read Inbox Primary mail (Gmail API, OAuth 2.0).
 Use a Desktop OAuth client JSON as credentials.json (or GOOGLE_CLIENT_SECRET_FILE).
 That Cloud project user is unrelated to which mailbox you read: each mailbox
 authorizes once. Tokens: --account EMAIL or GMAIL_ACCOUNT / GMAIL_ADDRESS →
-tokens/<sanitized-email>.json; if no account is set → ./token.json; GMAIL_TOKEN_PATH
-overrides the path. While the OAuth app is in Testing, add each mailbox as a test user.
+<project root>/tokens/<sanitized-email>.json; if no account is set →
+<project root>/token.json; GMAIL_TOKEN_PATH overrides the path. While the OAuth
+app is in Testing, add each mailbox as a test user.
 
 Lists Inbox Primary (INBOX + CATEGORY_PERSONAL). Env: GMAIL_LIMIT, GMAIL_UNREAD_ONLY,
 GMAIL_ACCOUNT, GMAIL_ADDRESS, GMAIL_TOKEN_PATH. .env is loaded with override=True.
@@ -41,8 +42,20 @@ except ModuleNotFoundError as exc:
     )
     raise SystemExit(1) from exc
 
-_PROJECT_ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(_PROJECT_ROOT / ".env", override=True)
+_SKILL_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _infer_project_root(skill_root: Path) -> Path:
+    if (
+        skill_root.parent.name == "skills"
+        and skill_root.parent.parent.name == ".agents"
+    ):
+        return skill_root.parent.parent.parent.resolve()
+    return Path.cwd().resolve()
+
+
+_PROJECT_ROOT = _infer_project_root(_SKILL_ROOT)
+load_dotenv(_SKILL_ROOT / ".env", override=True)
 
 # Read-only access is enough to list subjects and headers.
 _SCOPES = ("https://www.googleapis.com/auth/gmail.readonly",)
@@ -205,7 +218,7 @@ def _credentials_path() -> Path:
     raw = os.environ.get("GOOGLE_CLIENT_SECRET_FILE", "").strip()
     if raw:
         return Path(raw).expanduser().resolve()
-    return (_PROJECT_ROOT / "credentials.json").resolve()
+    return (_SKILL_ROOT / "credentials.json").resolve()
 
 
 def _safe_token_filename(email: str) -> str:
@@ -253,7 +266,7 @@ def load_credentials(account: str | None) -> Credentials:
                 raise FileNotFoundError(
                     f"OAuth client secrets not found: {secrets_file}\n"
                     "Create a Desktop OAuth client in Google Cloud Console, download JSON, "
-                    "save as credentials.json in the project root or set GOOGLE_CLIENT_SECRET_FILE."
+                    "save as credentials.json in the skill root or set GOOGLE_CLIENT_SECRET_FILE."
                 )
             flow = InstalledAppFlow.from_client_secrets_file(str(secrets_file), _SCOPES)
             creds = flow.run_local_server(port=0)
@@ -361,7 +374,7 @@ def main() -> int:
         "--account",
         metavar="EMAIL",
         default=_default_gmail_account(),
-        help="Mailbox (default GMAIL_ACCOUNT or GMAIL_ADDRESS). Token: tokens/<email>.json unless GMAIL_TOKEN_PATH.",
+        help="Mailbox (default GMAIL_ACCOUNT or GMAIL_ADDRESS). Token: <project root>/tokens/<email>.json unless GMAIL_TOKEN_PATH.",
     )
     parser.add_argument(
         "--limit",
