@@ -9,7 +9,8 @@ compatibility: >
   Python 3 with dependencies in requirements.txt. Gmail OAuth (credentials /
   tokens per scripts/read_gmail.py). Network access to Gmail API. Run commands
   from this skill's root directory (the folder that contains SKILL.md). OAuth
-  tokens are written to the project root, not the skill folder.
+  tokens and temporary output files are written to the project root, not the
+  skill folder.
 metadata:
   version: "1.0"
 ---
@@ -29,6 +30,7 @@ Activate for requests like: summarize my email, what’s in my inbox, recap rece
 
    If the script reports missing Python modules, run the same command from the skill root and retry.
 3. **Credentials and tokens**: Keep `credentials.json` and optional `.env` beside `SKILL.md`. OAuth creates or refreshes `token.json` in the project root folder, not in the skill folder. If `--account EMAIL` or `GMAIL_ACCOUNT` is used, the token is stored under the project root `tokens/` directory. `GMAIL_TOKEN_PATH` overrides this only when the user explicitly wants a custom token path.
+4. **Temporary files**: Do not create `output.txt` or other scratch files in the skill folder. If raw script output needs to be saved, use the script's `--output` flag; relative paths are written under the project root.
 
 ## Steps
 
@@ -41,6 +43,8 @@ Activate for requests like: summarize my email, what’s in my inbox, recap rece
    ```
 
    Example: `python scripts/read_gmail.py --limit 5`
+
+   If you need a temporary copy of the raw output, run e.g. `python scripts/read_gmail.py --limit 5 --output output.txt`; this writes `<project root>/output.txt`.
 
 4. Treat stdout as **EMAIL_MESSAGES**. If the process exits non-zero, read stderr, explain the failure to the user, and do not invent message content.
 5. Summarize **EMAIL_MESSAGES** for the user:

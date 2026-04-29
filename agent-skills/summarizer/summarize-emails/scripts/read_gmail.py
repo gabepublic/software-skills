@@ -12,6 +12,7 @@ app is in Testing, add each mailbox as a test user.
 Lists Inbox Primary (INBOX + CATEGORY_PERSONAL). Env: GMAIL_LIMIT, GMAIL_UNREAD_ONLY,
 GMAIL_ACCOUNT, GMAIL_ADDRESS, GMAIL_TOKEN_PATH. .env is loaded with override=True.
 `python scripts/read_gmail.py --debug` logs labelIds per message on stderr.
+If `--output output.txt` is used, relative paths are written under the project root.
 """
 
 from __future__ import annotations
@@ -242,6 +243,13 @@ def _resolve_token_file(account: str | None) -> Path:
     return (_PROJECT_ROOT / "token.json").resolve()
 
 
+def _resolve_output_file(path: str) -> Path:
+    out = Path(path).expanduser()
+    if out.is_absolute():
+        return out.resolve()
+    return (_PROJECT_ROOT / out).resolve()
+
+
 def _default_gmail_account() -> str | None:
     v = (
         os.environ.get("GMAIL_ACCOUNT") or os.environ.get("GMAIL_ADDRESS") or ""
@@ -366,6 +374,24 @@ def fetch_recent(
     return [row for _, row in staged]
 
 
+def _format_rows(rows: list[tuple[str, str, str, str]]) -> str:
+    if not rows:
+        return "No messages matched.\n"
+
+    parts: list[str] = []
+    for mid, subject, from_, body in rows:
+        parts.append(f"Message ID {mid}")
+        parts.append(f"  From:    {from_}")
+        parts.append(f"  Subject: {subject}")
+        if body:
+            parts.append("  Body:")
+            parts.append(indent(body, "    "))
+        else:
+            parts.append("  Body:    (empty or non-text parts only)")
+        parts.append("")
+    return "\n".join(parts)
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Read Inbox Primary Gmail (OAuth 2.0); mailbox may differ from Cloud project owner.",
@@ -392,6 +418,11 @@ def main() -> int:
         "--debug",
         action="store_true",
         help="Log token path, mailbox, unread_only, and each message labelIds on stderr.",
+    )
+    parser.add_argument(
+        "--output",
+        metavar="PATH",
+        help="Also write raw output to PATH. Relative paths resolve under the project root.",
     )
     args = parser.parse_args()
     account = (args.account or "").strip() or None
@@ -431,20 +462,12 @@ def main() -> int:
         print(f"Gmail API error: {e}", file=sys.stderr)
         return 2
 
-    if not rows:
-        print("No messages matched.")
-        return 0
-
-    for mid, subject, from_, body in rows:
-        print(f"Message ID {mid}")
-        print(f"  From:    {from_}")
-        print(f"  Subject: {subject}")
-        if body:
-            print("  Body:")
-            print(indent(body, "    "))
-        else:
-            print("  Body:    (empty or non-text parts only)")
-        print()
+    output = _format_rows(rows)
+    print(output, end="")
+    if args.output:
+        output_file = _resolve_output_file(args.output)
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        output_file.write_text(output, encoding="utf-8")
 
     return 0
 
