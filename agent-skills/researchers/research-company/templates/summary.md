@@ -1,6 +1,6 @@
 # Company Research Brief: <COMPANY_NAME>
 
-Prepared from publicly available website content at <COMPANY_URL>.
+Prepared from publicly available company website content collected during this research at <COMPANY_URL>.
 
 ## Greeting
 

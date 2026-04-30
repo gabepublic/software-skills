@@ -1,0 +1,90 @@
+Viewed SKILL.md:1-91
+Listed directory research-company
+Viewed summary.md:1-56
+Ran command: `agent-browser --version`
+Searched web: "Arianespace official website"
+Viewed SKILL.md:1-52
+Ran command: `agent-browser skills get core`
+Ran command: `agent-browser open https://www.arianespace.com/ && agent-browser wait --idle && agent-browser snapshot -i > arianespace_snapshot.txt`
+Ran command: `agent-browser open https://www.arianespace.com/`
+Ran command: `agent-browser snapshot -i > arianespace_snapshot.txt`
+Ran command: `agent-browser snapshot -i | Out-File -Encoding utf8 arianespace_snapshot_utf8.txt`
+Viewed arianespace_snapshot_utf8.txt:1-79
+Ran command: `agent-browser --session a open https://www.arianespace.com/about-us/ ; agent-browser --session a snapshot -i | Out-File -Encoding utf8 arianespace_about.txt`
+Ran command: `agent-browser --session a open https://www.arianespace.com/ ; agent-browser --session a click @e34 ; agent-browser --session a wait --idle ; agent-browser --session a snapshot -i | Out-File -Encoding utf8 arianespace_about.txt`
+Ran command: `agent-browser --session a snapshot -i | Out-File -Encoding utf8 arianespace_homepage2.txt`
+Viewed arianespace_homepage2.txt
+Ran command: `agent-browser open https://www.arianespace.com/ ; agent-browser snapshot -i > $null ; agent-browser get attr "@e8" href ; agent-browser get attr "@e22" href`
+Ran command: `agent-browser open https://www.arianespace.com/profil-in-short/ ; agent-browser snapshot -i | Out-File -Encoding utf8 arianespace_profil.txt`
+Viewed arianespace_profil.txt:1-38
+Ran command: `"document.body.innerText" | agent-browser eval --stdin | Out-File -Encoding utf8 arianespace_text.txt`
+Read URL: https://www.arianespace.com/profil-in-short/
+Viewed content.md:1-346
+Read URL: https://www.arianespace.com/any-mission-to-any-orbit/
+Viewed content.md:1-369
+
+# Company Research Brief: Arianespace
+
+Prepared from publicly available website content at https://www.arianespace.com.
+
+## Greeting
+
+Hi there! I've completed the research on Arianespace by analyzing their official website. Here is the structured summary of their business profile and offerings.
+
+## Executive Summary
+
+Arianespace is a leading commercial space transportation company that provides flexible and modular launch services for a wide range of payloads to any orbit. Operating out of the Guiana Space Center with a legacy spanning over 45 years, the company ensures independent access to space for Europe while serving global commercial and institutional customers. Its modern fleet features the new-generation heavy-lift Ariane 6, alongside the light-lift Vega and Vega C launchers.
+
+## Company Snapshot
+
+- **Company:** Arianespace
+- **Website:** https://www.arianespace.com
+- **Headquarters / Location:** Headquarters in Les Mureaux, France; launches operated from the Guiana Space Center in Kourou, French Guiana; regional offices in Tokyo, Singapore, and Washington, D.C.
+- **Core Offering:** Space transportation services and modular launch solutions for all types of satellites and orbits.
+- **Primary Customers:** Commercial and institutional customers worldwide (over 150 customers from 50 countries, including ESA, NASA, OneWeb, and Intelsat).
+- **Business Model:** Commercial space launch services, deploying payloads via dedicated or rideshare missions.
+- **Source Confidence:** High - Information is extracted directly from the official Arianespace website, detailing their current launcher lineup, mission history, and corporate structure.
+
+## What The Company Does
+
+Arianespace operates as the primary commercial launch service provider for Europe, utilizing a range of launch vehicles including the heavy-lift Ariane 6 and the light-lift Vega series. Founded over 45 years ago and operating as a subsidiary of ArianeGroup (which holds 100% of its share capital), the company has successfully delivered over 1,100 satellites into orbit. Its primary objective is to deliver tailored space transportation solutions that guarantee Europe’s sovereignty and autonomous access to space, supporting missions that range from global internet constellations and Earth observation to deep space scientific exploration.
+
+## Products And Services
+
+- **Ariane 6**: A new-generation, highly versatile heavy-lift launcher available in two versions (Ariane 62 with two boosters and Ariane 64 with four boosters). It features the re-ignitable Vinci engine and an auxiliary propulsion unit (APU) for complex missions, such as deploying large constellations across several different orbital planes.
+- **Vega and Vega C**: Light-lift launchers optimized for multiple deployments in low-Earth orbit (LEO), offering precision for environmental monitoring and Earth observation missions.
+- **Launch Services**: Comprehensive end-to-end launch solutions including satellite integration, ground services, and deployment across various orbits (LEO, MEO, GTO, SSO, and separation trajectories).
+
+## Target Market And Use Cases
+
+- **Telecommunications**: Deploying satellites in Geostationary Transfer Orbit (GTO) for high-speed global connectivity (e.g., Intelsat, Syracuse 4B).
+- **Earth Observation**: Placing satellites in Sun-Synchronous Orbit (SSO) for natural resource management, agriculture, and disaster response (e.g., Copernicus Sentinel missions).
+- **Navigation**: Launching satellites to Medium Earth Orbit (MEO) for advanced civil and security positioning applications (e.g., the Galileo constellation).
+- **Science and Exploration**: Executing separation trajectories for complex scientific missions (e.g., deploying the James Webb Space Telescope to Lagrange Point 2).
+- **Constellations**: Deploying large satellite networks into Low Earth Orbit (LEO) using intelligent dispensers (e.g., deploying 428 satellites for the OneWeb internet constellation).
+
+## Positioning And Differentiation
+
+Arianespace positions itself as the expert capable of delivering "any mission to any orbit" with optimized precision, performance, and reliability. It differentiates itself through its extensive heritage (over 1,100 satellites launched), customized payload accommodations like the Smart Dispenser, and its critical role as the guarantor of independent, sovereign access to space for Europe. The transition to the new Ariane 6 emphasizes cost competitiveness and modularity by sharing common components with the Vega C to reduce production and launch costs.
+
+## Go-To-Market Signals
+
+- Strongly highlighting the transition to the new-generation Ariane 6 launcher, signaling a push for greater modularity and cost efficiency against global competitors.
+- Emphasis on large-scale constellation deployment capabilities (e.g., the successful deployment of OneWeb satellites and the upcoming Amazon Kuiper missions visible in their news section).
+- Active global presence with regional offices in Tokyo, Singapore, and Washington, D.C., to stay in close proximity to international customers.
+- Strong strategic ties with European institutions like the European Space Agency (ESA) and the European Commission.
+
+## Notable Website Evidence
+
+- "Arianespace operates Europe’s new-generation Ariane 6 launcher, developed by ESA with ArianeGroup as prime industrial contractor."
+- "With more than 45 years of experience and over 1,100 satellites successfully delivered to orbit for more than 150 customers, Arianespace brings a proven record of excellence to every mission."
+- "Arianespace is a subsidiary of ArianeGroup, which holds 100% of its share capital."
+
+## Analyst Assessment
+
+Arianespace remains a foundational pillar of the European space sector, currently transitioning through a critical evolution phase with the introduction of Ariane 6. Its deep institutional relationships provide a stable baseline of launch manifests (e.g., Galileo, Copernicus), while its active engagement in commercial constellations (such as OneWeb and Amazon Project Kuiper) demonstrates robust competitiveness against international commercial launch providers. The primary focus moving forward will be scaling Ariane 6 launch cadences and proving the new vehicle's reliability and cost efficiency in a highly competitive market.
+
+## Open Questions Or Caveats
+
+- Specific pricing models for Ariane 6 and Vega launches are not publicly disclosed on the site.
+- While the website mentions Arianespace's role in the Amazon Kuiper constellation in its recent news updates, detailed commercial terms or the long-term launch cadence for this project would require external sources.

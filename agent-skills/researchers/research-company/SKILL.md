@@ -1,11 +1,10 @@
 ---
 name: research-company
 description: >
-  Research a target company by using agent-browser to navigate and scrape the
+  Research a target company by navigating and reviewing the
   company's website, extract key business information, and use an LLM to produce
   a structured summary in templates/summary.md. Use when the user asks to
   research, profile, summarize, or analyze a company from its website.
-allowed-tools: Bash(agent-browser:*), Bash(npx:*), Bash(npm:*)
 ---
 
 # Research Company
@@ -21,44 +20,11 @@ Use this skill when the user provides a company name, domain, or website URL and
 
 If the user gives only a company name, identify the official website before scraping. If there are multiple plausible companies, ask a brief clarifying question.
 
-## Dependency Check
-
-This skill depends on the `agent-browser` CLI, not just the local `.agents/skills/agent-browser/SKILL.md` instructions.
-
-Before browsing:
-
-1. Check whether `agent-browser` is available:
-
-   ```bash
-   agent-browser --version
-   ```
-
-2. If the command is missing, install and initialize it:
-
-   ```bash
-   npm i -g agent-browser
-   agent-browser install
-   ```
-
-3. If global install is unavailable, use `npx` as a fallback:
-
-   ```bash
-   npx -y agent-browser skills get core
-   ```
-
-4. If neither global `agent-browser` nor `npx` works, stop and tell the user that browser automation is unavailable in the current environment. Do not pretend the website was scraped.
-
 ## Workflow
 
-1. Load the installed browser workflow before running browser commands:
+1. Open the official company website. Prefer the homepage, then inspect likely high-signal pages such as About, Products, Services, Solutions, Customers, Pricing, Blog, Careers, Contact, and Terms/Privacy when available.
 
-   ```bash
-   agent-browser skills get core
-   ```
-
-2. Use `agent-browser` to open the official company website. Prefer the homepage, then inspect likely high-signal pages such as About, Products, Services, Solutions, Customers, Pricing, Blog, Careers, Contact, and Terms/Privacy when available.
-
-3. Programmatically extract relevant page text and metadata. Capture concise evidence for:
+2. Extract relevant page text and metadata. Capture concise evidence for:
    - What the company does.
    - Primary products or services.
    - Target customers, industries, or use cases.
@@ -66,11 +32,11 @@ Before browsing:
    - Company location, leadership, funding, or team details if present on the site.
    - Notable calls to action, pricing signals, or contact channels.
 
-4. Use an LLM to synthesize the scraped material into neutral, factual language. Prioritize information directly supported by the website and do not invent missing facts.
+3. Use an LLM to synthesize the gathered material into neutral, factual language. Prioritize information directly supported by the website and do not invent missing facts.
 
-5. Read `templates/summary.md` and produce the final response in that exact structure:
+4. Read `templates/summary.md` and produce the final response in that exact structure:
    - Replace every placeholder with concise, website-supported content.
-   - Use `Not found on the website` for fields that cannot be supported by scraped content.
+   - Use `Not found on the website` for fields that cannot be supported by available website content.
    - Keep `<EXECUTIVE_SUMMARY>` to 2-4 sentences.
    - Keep `<COMPANY_SUMMARY>` to one concise paragraph explaining what the company does and the most important supporting details from the website.
    - Use the caveats section for ambiguity, sparse evidence, inaccessible pages, or analyst inference.
@@ -85,6 +51,6 @@ Before browsing:
 
 ## Edge Cases
 
-- If the website blocks automation, try a lighter interaction path with `agent-browser`; if still blocked, explain the limitation and summarize only accessible content.
+- If the website is inaccessible or blocks retrieval, explain the limitation and summarize only accessible content.
 - If the site is not in English, translate only enough to produce the requested summary and state that the source site was in another language.
 - If the website has no clear company description, report that clearly rather than guessing.
