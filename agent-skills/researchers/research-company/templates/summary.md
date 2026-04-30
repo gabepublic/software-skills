@@ -2,10 +2,6 @@
 
 Prepared from publicly available company website content collected during this research at <COMPANY_URL>.
 
-## Greeting
-
-<USER_GREETING>
-
 ## Executive Summary
 
 <EXECUTIVE_SUMMARY>

@@ -2,10 +2,6 @@
 
 Prepared from reviewed sources as of <RESEARCH_DATE>.
 
-## Greeting
-
-<USER_GREETING>
-
 ## Executive Summary
 
 <2_TO_4_SENTENCE_SUMMARY_OF_MAIN_ANSWER_AND_CONFIDENCE>
