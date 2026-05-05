@@ -164,3 +164,7 @@ npx skills add https://github.com/gabepublic/software-skills --skill fastapi-con
 
 - see `https://github.com/gabepublic/api-fastapi-skilled-template\README.md`
 
+
+## REFERENCES
+
+- `review-skill` - https://www.youtube.com/watch?v=8s7e-IxohVk&t=1s | Dylan Davis |
